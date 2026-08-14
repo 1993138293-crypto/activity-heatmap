@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="活动热力图">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#f2f2f7">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000000">
+<title>活动热力图</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+
+<div class="app">
+  <!-- 顶部大标题 -->
+  <header class="nav">
+    <div class="nav-title">活动热力图</div>
+    <div class="nav-actions">
+      <button class="icon-btn" id="btn-reminders" title="每日提醒" aria-label="每日提醒">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+      </button>
+      <button class="icon-btn" id="btn-list" title="全部记录" aria-label="全部记录">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="4" cy="6" r="1.4" fill="currentColor" stroke="none"/><circle cx="4" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="4" cy="18" r="1.4" fill="currentColor" stroke="none"/><path d="M9 6h11M9 12h11M9 18h11"/></svg>
+      </button>
+      <button class="icon-btn" id="btn-theme" title="切换外观（自动/浅色/深色）" aria-label="切换外观">
+        <svg id="ic-theme" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <circle cx="12" cy="12" r="4"/>
+          <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- 年度统计摘要 -->
+  <div class="stats-year" id="stats-year">2026 年 · 年度统计</div>
+  <div class="tiles" id="tiles">
+    <div class="tile"><div class="tile-value" id="st-days">0</div><div class="tile-label">活动天数</div><div class="tile-sub" id="st-days-sub"></div></div>
+    <div class="tile"><div class="tile-value" id="st-streak">0</div><div class="tile-label">连续打卡（天）</div><div class="tile-sub" id="st-streak-sub"></div></div>
+    <div class="tile"><div class="tile-value" id="st-best">0</div><div class="tile-label">最长连续（天）</div><div class="tile-sub" id="st-best-sub"></div></div>
+    <div class="tile"><div class="tile-value" id="st-total">0</div><div class="tile-label">活动记录（条）</div><div class="tile-sub" id="st-total-sub"></div></div>
+  </div>
+
+  <!-- 视图切换 -->
+  <div class="seg" id="seg" role="tablist" aria-label="视图切换">
+    <div class="seg-thumb" id="seg-thumb"></div>
+    <button role="tab" id="seg-year" class="active" aria-selected="true">年视图</button>
+    <button role="tab" id="seg-month" aria-selected="false">月视图</button>
+  </div>
+
+  <!-- 标签筛选（作用于下方的统计与图表） -->
+  <div class="filter-row" id="filter-row" role="group" aria-label="标签筛选"></div>
+
+  <!-- 图表卡片 -->
+  <section class="card">
+    <div class="chart-nav">
+      <button class="icon-btn" id="btn-prev" aria-label="上一个" title="上一个">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4l-8 8 8 8"/></svg>
+      </button>
+      <div class="chart-title" id="chart-title">2026 年</div>
+      <button class="icon-btn" id="btn-next" aria-label="下一个" title="下一个">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4l8 8-8 8"/></svg>
+      </button>
+      <button class="nav-pill" id="btn-today">今天</button>
+      <button class="nav-pill" id="btn-quick-add" title="为今天添加记录">＋</button>
+    </div>
+
+    <!-- 年视图 -->
+    <div class="year-body" id="year-view">
+      <div class="day-labels" aria-hidden="true">
+        <span>一</span><span>三</span><span>五</span>
+      </div>
+      <div class="year-scroll" id="year-scroll">
+        <div class="year-canvas" id="year-canvas">
+          <div class="month-labels" id="month-labels"></div>
+          <div class="year-grid" id="year-grid"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 月视图 -->
+    <div id="month-view" hidden>
+      <div class="week-head" aria-hidden="true">
+        <span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span>
+      </div>
+      <div class="month-grid" id="month-grid"></div>
+    </div>
+
+    <!-- 图例 -->
+    <div class="legend" aria-hidden="true">
+      <span>少</span>
+      <span class="sw" style="background:var(--h0)"></span><span class="gap"></span>
+      <span class="sw" style="background:var(--h1)"></span>
+      <span class="sw" style="background:var(--h2)"></span>
+      <span class="sw" style="background:var(--h3)"></span>
+      <span class="sw" style="background:var(--h4)"></span>
+      <span class="gap"></span><span>多</span>
+    </div>
+  </section>
+
+  <p class="footnote">点击任意日期查看 / 添加当天记录<br>数据仅保存在此浏览器中，请定期使用「全部记录 → 导出备份」</p>
+</div>
+
+<!-- 底部弹层 -->
+<div class="backdrop" id="backdrop" hidden></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="详情面板" hidden>
+  <div class="sheet-handle" aria-hidden="true"></div>
+  <!-- 详情模式 -->
+  <div id="sheet-day">
+    <div class="sheet-head">
+      <div class="sheet-date" id="sheet-date">2026年8月14日<small id="sheet-date-sub"></small></div>
+      <button class="icon-btn" id="sheet-close" aria-label="关闭">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <div class="sheet-body">
+      <button class="btn-primary" id="btn-add-rec">＋ 添加活动记录</button>
+      <div id="rec-list"></div>
+    </div>
+  </div>
+  <!-- 表单模式（添加/编辑记录） -->
+  <div id="sheet-form" hidden>
+    <div class="sheet-head">
+      <button class="icon-btn" id="form-back" aria-label="返回">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4l-8 8 8 8"/></svg>
+      </button>
+      <div class="sheet-date" id="form-title">添加记录</div>
+      <button class="icon-btn" id="form-close" aria-label="关闭">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <div class="sheet-body">
+      <label class="field-label" for="f-title">活动内容</label>
+      <input class="field" id="f-title" type="text" placeholder="例如：跑步 30 分钟" autocomplete="off">
+      <label class="field-label">活动强度</label>
+      <div class="level-picker" id="level-picker">
+        <button class="level-btn" data-lv="1" aria-label="轻度"><i></i></button>
+        <button class="level-btn" data-lv="2" aria-label="中度"><i></i></button>
+        <button class="level-btn" data-lv="3" aria-label="较强"><i></i></button>
+        <button class="level-btn" data-lv="4" aria-label="高强度"><i></i></button>
+        <span class="level-cap" id="level-cap">中度</span>
+      </div>
+      <label class="field-label" for="f-duration">时长（分钟，可选）</label>
+      <div class="chip-row" id="dur-chips">
+        <button class="dchip" data-min="15">15 分钟</button>
+        <button class="dchip" data-min="30">30 分钟</button>
+        <button class="dchip" data-min="60">1 小时</button>
+        <button class="dchip" data-min="120">2 小时</button>
+      </div>
+      <input class="field" id="f-duration" type="number" min="0" max="1440" inputmode="numeric" placeholder="例如：45（填 0 或不填表示不计时长）">
+      <label class="field-label">标签（可选，可多选）</label>
+      <div class="tag-pick" id="tag-pick"></div>
+      <div class="tag-add">
+        <input class="field" id="f-tag-input" type="text" placeholder="新建标签…（最多 8 个字）" maxlength="8" autocomplete="off">
+        <button class="tag-add-btn" id="f-tag-add">添加</button>
+      </div>
+      <label class="field-label" for="f-note">备注（可选）</label>
+      <input class="field" id="f-note" type="text" placeholder="补充说明，如：状态不错" autocomplete="off">
+      <div class="form-actions">
+        <button class="btn-plain" id="f-cancel">取消</button>
+        <button class="btn-plain danger" id="f-delete" hidden>删除记录</button>
+        <button class="btn-primary" id="f-save" style="flex:2">保存</button>
+      </div>
+    </div>
+  </div>
+  <!-- 提醒设置模式 -->
+  <div id="sheet-remind" hidden>
+    <div class="sheet-head">
+      <div class="sheet-date">每日提醒<small id="remind-sub">到点提醒你记录当天活动</small></div>
+      <button class="icon-btn" id="remind-close" aria-label="关闭">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <div class="sheet-body">
+      <div class="remind-note" id="remind-note"></div>
+      <div id="rem-list"></div>
+      <button class="btn-primary" id="btn-add-remind" style="margin-top:14px">＋ 添加提醒</button>
+      <p class="remind-foot">提示：网页版在页面打开时会弹出提醒横幅；部署到服务器并安装到手机主屏后，可升级为「关着页面也能收到」的系统推送。</p>
+    </div>
+  </div>
+  <!-- 提醒编辑模式 -->
+  <div id="sheet-remind-form" hidden>
+    <div class="sheet-head">
+      <button class="icon-btn" id="remform-back" aria-label="返回">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4l-8 8 8 8"/></svg>
+      </button>
+      <div class="sheet-date" id="remform-title">添加提醒</div>
+      <button class="icon-btn" id="remform-close" aria-label="关闭">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <div class="sheet-body">
+      <label class="field-label" for="f-rem-time">提醒时间</label>
+      <input class="field" id="f-rem-time" type="time" value="20:00">
+      <label class="field-label" for="f-rem-text">提醒内容</label>
+      <input class="field" id="f-rem-text" type="text" placeholder="例如：记得记录今天的活动" autocomplete="off">
+      <label class="field-label">重复日期</label>
+      <div class="weekday-pick" id="weekday-pick">
+        <button class="wchip" data-d="0">一</button>
+        <button class="wchip" data-d="1">二</button>
+        <button class="wchip" data-d="2">三</button>
+        <button class="wchip" data-d="3">四</button>
+        <button class="wchip" data-d="4">五</button>
+        <button class="wchip" data-d="5">六</button>
+        <button class="wchip" data-d="6">日</button>
+      </div>
+      <div class="form-actions">
+        <button class="btn-plain" id="remform-cancel">取消</button>
+        <button class="btn-plain danger" id="remform-delete" hidden>删除提醒</button>
+        <button class="btn-primary" id="remform-save" style="flex:2">保存</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 提醒横幅（iOS 通知样式） -->
+<div class="banner" id="banner" role="alert">
+  <svg class="banner-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+  <div class="banner-main">
+    <b id="banner-text">提醒</b>
+    <span id="banner-sub"></span>
+  </div>
+  <button class="banner-act" id="banner-open">打开今天</button>
+  <button class="icon-btn banner-x" id="banner-close" aria-label="关闭">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+  </button>
+</div>
+
+<!-- 全部记录页 -->
+<div class="listview" id="listview" hidden>
+  <div class="list-head">
+    <button class="icon-btn" id="list-back" aria-label="返回">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4l-8 8 8 8"/></svg>
+    </button>
+    <div class="list-title">全部记录</div>
+    <div class="list-count" id="list-count"></div>
+  </div>
+  <div class="list-body" id="list-body"></div>
+  <div class="list-footer">
+    <button id="btn-export">导出备份</button>
+    <button id="btn-import">导入备份</button>
+    <button class="danger" id="btn-clear">清空数据</button>
+  </div>
+</div>
+
+<!-- 首次使用欢迎层 -->
+<div class="welcome" id="welcome" hidden>
+  <div class="welcome-card">
+    <div class="welcome-logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18"/><path d="M7 15h3M12.5 15h4.5M7 18.5h2"/></svg>
+    </div>
+    <h2>欢迎使用活动热力图</h2>
+    <p>· 类似 GitHub 贡献图，用颜色深浅记录每天的活动强度（时长越久颜色越深）<br>· 点击任意日期，添加或编辑当天的活动记录<br>· 支持标签分类筛选，按「运动 / 学习 / 健康」等维度查看<br>· 设置每日提醒，到点提醒你打卡<br>· 顶部自动统计年度活动天数、连续打卡等数据<br>· 支持月 / 年两种视图，左右滑动浏览历史</p>
+    <button class="btn-primary" id="welcome-sample">载入示例数据（推荐先体验）</button>
+    <button class="btn-plain" id="welcome-empty">从空白开始</button>
+  </div>
+</div>
+
+<!-- 悬浮提示 -->
+<div class="tooltip" id="tooltip" hidden></div>
+
+<!-- 导入备份用 -->
+<input type="file" id="file-input" accept=".json,application/json" hidden>
+
+<script src="app.js"></script>
+</body>
+</html>
